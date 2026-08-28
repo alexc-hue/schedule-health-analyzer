@@ -77,6 +77,51 @@ def print_report(comparison, score, baseline_finish, current_finish) -> None:
               f"current_float={row['current_float']:+3d}d  [{criticality_tag(row)}]")
 
 
+def write_report_markdown(comparison, score, baseline_finish, current_finish) -> None:
+    lines = [
+        "# Schedule Health Report",
+        "",
+        f"**Schedule Health Score: {score['total_score']} / 100**",
+        "",
+        "| Component | Score |",
+        "|---|---|",
+        f"| Slip | {score['schedule_score']} / 50 |",
+        f"| Float erosion | {score['erosion_score']} / 25 |",
+        f"| Critical concentration | {score['concentration_score']} / 25 |",
+        "",
+        f"**Baseline finish:** {baseline_finish.date()}  ",
+        f"**Current forecast:** {current_finish.date()} ({score['slip_days']:+d} days)  ",
+        f"**Activities with eroded float (>= {metrics.EROSION_THRESHOLD_DAYS}d lost):** "
+        f"{score['pct_activities_eroded']}%  ",
+        f"**Activities critical or near-critical:** {score['pct_activities_critical_or_near']}%",
+        "",
+        "## Critical Path (current schedule)",
+        "",
+        "| Activity | Start | Finish | Status |",
+        "|---|---|---|---|",
+    ]
+    critical = comparison[comparison["is_critical"]].sort_values("current_start")
+    for _, row in critical.iterrows():
+        lines.append(
+            f"| {row['activity_name']} | {row['current_start'].date()} "
+            f"| {row['current_finish'].date()} | {status_tag(row)} |"
+        )
+
+    lines += ["", "## Top Float Erosion (baseline float lost)", "",
+              "| Activity | Erosion | Current Float | Status |",
+              "|---|---|---|---|"]
+    top_erosion = comparison.sort_values("float_erosion", ascending=False).head(6)
+    for _, row in top_erosion.iterrows():
+        lines.append(
+            f"| {row['activity_name']} | {row['float_erosion']:+d}d "
+            f"| {row['current_float']:+d}d | {criticality_tag(row)} |"
+        )
+    lines.append("")
+
+    with open(os.path.join(ASSETS_DIR, "report.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
 def chart_baseline_vs_current(comparison) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
     colors = {"CRITICAL": "#C44E52", "near-critical": "#DD8452", "ok": "#55A868"}
@@ -132,10 +177,11 @@ def main() -> None:
     print_report(comparison, score, baseline.project_finish, current.project_finish)
     chart_baseline_vs_current(comparison)
     chart_float_erosion(comparison)
+    write_report_markdown(comparison, score, baseline.project_finish, current.project_finish)
 
     print()
     print("-" * 64)
-    print(f"Charts saved to {ASSETS_DIR}")
+    print(f"Charts and report.md saved to {ASSETS_DIR}")
 
 
 if __name__ == "__main__":

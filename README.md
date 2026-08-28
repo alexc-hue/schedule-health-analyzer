@@ -61,6 +61,9 @@ Activities critical or near-critical: 78.6%
 Plus the current critical path activity by activity, and the activities that
 lost the most float, ranked, with the newly-critical ones flagged.
 
+A saved copy of this report is generated alongside the charts: see
+[assets/report.md](assets/report.md).
+
 ## Screenshots
 
 **Baseline vs. current schedule**, colored by current criticality. Two
