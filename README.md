@@ -1,10 +1,10 @@
 # Schedule Health Analyzer
 
-A Python tool that runs the Critical Path Method over a project's activity
-network twice, once against baseline durations and once against current/
-re-estimated durations, and turns the comparison into a schedule health
-report: forecast slip, float erosion by activity, critical-path concentration,
-and a composite 0-100 health score.
+Operationalizes the Critical Path Method as a repeatable health check instead
+of a one-off Gantt review. Runs a project's activity network twice, once
+against baseline durations, once against current/re-estimated ones, and turns
+the comparison into a schedule health report: forecast slip, float erosion by
+activity, critical-path concentration, and a composite 0-100 health score.
 
 Part of a small project-controls toolkit:
 [project-controls-dashboard](https://github.com/alexc-hue/project-controls-dashboard),
@@ -42,11 +42,12 @@ secondary materials/construction delay converge onto the same critical
 window, chosen so the tool has a real "two paths going critical at once"
 case to detect, not just a single obvious late task.
 
-## Technology
+## Implementation
 
-Python, pandas for the data and CPM bookkeeping, matplotlib for the charts.
-No external scheduling libraries, the CPM forward/backward pass is
-implemented directly (see `src/cpm.py`).
+Built in Python so the Critical Path Method runs the same way every time
+instead of being re-derived by eye off a Gantt chart: pandas for the data and
+CPM bookkeeping, matplotlib for the charts. No external scheduling libraries,
+the CPM forward/backward pass is implemented directly (see `src/cpm.py`).
 
 ## Result
 
