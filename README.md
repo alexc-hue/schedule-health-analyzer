@@ -6,6 +6,12 @@ re-estimated durations, and turns the comparison into a schedule health
 report: forecast slip, float erosion by activity, critical-path concentration,
 and a composite 0-100 health score.
 
+Part of a small project-controls toolkit:
+[project-controls-dashboard](https://github.com/alexc-hue/project-controls-dashboard),
+**schedule-health-analyzer** (this repo),
+[change-control-register](https://github.com/alexc-hue/change-control-register),
+[risk-trend-tracker](https://github.com/alexc-hue/risk-trend-tracker).
+
 ## Problem
 
 "Is the schedule actually healthy, or just not late yet?" is hard to answer
