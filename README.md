@@ -105,6 +105,11 @@ path, gained).
   unusually long activities). The score only covers slip, float erosion,
   and critical-path concentration, deliberately, to keep every component
   explainable in one sentence.
+- Meant to sit alongside a client's scheduling tool of record (Primavera P6,
+  MS Project), reading the baseline and current dates it already maintains,
+  not replacing it. The tool also doesn't decide what to do about a
+  near-critical activity, flagging it and leaving the response to the
+  planner or PM stays deliberate.
 
 ## What I learned
 
