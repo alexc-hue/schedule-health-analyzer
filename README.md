@@ -12,6 +12,8 @@ Part of a small project-controls toolkit:
 [change-control-register](https://github.com/alexc-hue/change-control-register),
 [risk-trend-tracker](https://github.com/alexc-hue/risk-trend-tracker).
 
+![Baseline vs current](assets/baseline_vs_current.png)
+
 ## Problem
 
 "Is the schedule actually healthy, or just not late yet?" is hard to answer
@@ -31,6 +33,10 @@ where the buffer went.
 - Compare the two: forecast slip at the project level, float erosion per
   activity (baseline float minus current float), and which activities have
   crossed into critical (float <= 0) or near-critical (float <= 5 days).
+  These are the same CPM primitives, float and critical path, that
+  standards like the DCMA 14-Point Assessment also check; this tool doesn't
+  implement that full checklist (no logic-error or missing-predecessor
+  detection), just the slip/erosion/concentration slice of it.
 - Roll that into one Schedule Health Score: 50 points for how much the
   finish date has slipped, 25 for how much of the network has lost
   meaningful float, 25 for how concentrated the critical path has become.
