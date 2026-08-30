@@ -10,7 +10,8 @@ Part of a small project-controls toolkit:
 [project-controls-dashboard](https://github.com/alexc-hue/project-controls-dashboard),
 **schedule-health-analyzer** (this repo),
 [change-control-register](https://github.com/alexc-hue/change-control-register),
-[risk-trend-tracker](https://github.com/alexc-hue/risk-trend-tracker).
+[risk-trend-tracker](https://github.com/alexc-hue/risk-trend-tracker),
+[project-controls-reporting-engine](https://github.com/alexc-hue/project-controls-reporting-engine).
 
 ![Baseline vs current](assets/baseline_vs_current.png)
 
