@@ -24,6 +24,32 @@ ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
 PROJECT_START = "2026-01-05"
 
+# Standardized chart color system (chart chrome, status scale, baseline/reference)
+CHART_BG = "#fcfcfb"
+INK = "#10182b"
+GRID = "#e1e0d9"
+BASELINE = "#3a4d7a"
+STATUS_GOOD = "#0ca30c"
+STATUS_WARNING = "#fab219"
+STATUS_CRITICAL = "#d03b3b"
+
+
+def _apply_chrome(fig, axes) -> None:
+    """Apply the standardized chart chrome (background, ink, gridlines) to a figure."""
+    fig.patch.set_facecolor(CHART_BG)
+    if hasattr(axes, "flatten"):
+        axes = axes.flatten().tolist()
+    elif not isinstance(axes, (list, tuple)):
+        axes = [axes]
+    for ax in axes:
+        ax.set_facecolor(CHART_BG)
+        ax.title.set_color(INK)
+        ax.xaxis.label.set_color(INK)
+        ax.yaxis.label.set_color(INK)
+        ax.tick_params(colors=INK)
+        for spine in ax.spines.values():
+            spine.set_color(INK)
+
 
 def status_tag(row) -> str:
     if row["status"] == "Complete":
@@ -124,13 +150,13 @@ def write_report_markdown(comparison, score, baseline_finish, current_finish) ->
 
 def chart_baseline_vs_current(comparison) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
-    colors = {"CRITICAL": "#C44E52", "near-critical": "#DD8452", "ok": "#55A868"}
+    colors = {"CRITICAL": STATUS_CRITICAL, "near-critical": STATUS_WARNING, "ok": STATUS_GOOD}
     for i, row in enumerate(comparison.itertuples()):
         b_start = mdates.date2num(row.baseline_start)
         b_width = mdates.date2num(row.baseline_finish) - b_start
         c_start = mdates.date2num(row.current_start)
         c_width = mdates.date2num(row.current_finish) - c_start
-        ax.barh(i - 0.15, b_width, left=b_start, height=0.3, color="#B0B0B0")
+        ax.barh(i - 0.15, b_width, left=b_start, height=0.3, color=BASELINE)
         tag = criticality_tag(row._asdict())
         ax.barh(i + 0.15, c_width, left=c_start, height=0.3, color=colors[tag])
 
@@ -138,31 +164,33 @@ def chart_baseline_vs_current(comparison) -> None:
     ax.set_yticklabels(comparison["activity_name"], fontsize=8)
     ax.invert_yaxis()
     ax.xaxis_date()
-    ax.set_title("Baseline (gray) vs Current Schedule, by criticality")
-    handles = [plt.Rectangle((0, 0), 1, 1, color="#B0B0B0", label="Baseline")]
+    ax.set_title("Baseline vs Current Schedule, by criticality")
+    handles = [plt.Rectangle((0, 0), 1, 1, color=BASELINE, label="Baseline")]
     handles += [plt.Rectangle((0, 0), 1, 1, color=c, label=k) for k, c in colors.items()]
     ax.legend(handles=handles, loc="lower right", fontsize=8)
-    ax.grid(alpha=0.3, axis="x")
+    ax.grid(color=GRID, linewidth=0.6, axis="x")
+    _apply_chrome(fig, ax)
     fig.autofmt_xdate()
     fig.tight_layout()
-    fig.savefig(os.path.join(ASSETS_DIR, "baseline_vs_current.png"), dpi=140)
+    fig.savefig(os.path.join(ASSETS_DIR, "baseline_vs_current.png"), dpi=140, facecolor=CHART_BG)
     plt.close(fig)
 
 
 def chart_float_erosion(comparison) -> None:
     ranked = comparison.sort_values("float_erosion", ascending=True)
-    colors = ["#C44E52" if v >= metrics.EROSION_THRESHOLD_DAYS else "#4C72B0"
+    colors = [STATUS_CRITICAL if v >= metrics.EROSION_THRESHOLD_DAYS else STATUS_GOOD
               for v in ranked["float_erosion"]]
     fig, ax = plt.subplots(figsize=(9, 6))
     ax.barh(ranked["activity_name"], ranked["float_erosion"], color=colors)
-    ax.axvline(metrics.EROSION_THRESHOLD_DAYS, color="gray", linestyle="--", linewidth=1,
+    ax.axvline(metrics.EROSION_THRESHOLD_DAYS, color=BASELINE, linestyle="--", linewidth=1,
                label=f"Erosion threshold ({metrics.EROSION_THRESHOLD_DAYS}d)")
     ax.set_xlabel("Float erosion (days lost vs baseline float)")
     ax.set_title("Float Erosion by Activity")
     ax.legend(fontsize=8)
-    ax.grid(alpha=0.3, axis="x")
+    ax.grid(color=GRID, linewidth=0.6, axis="x")
+    _apply_chrome(fig, ax)
     fig.tight_layout()
-    fig.savefig(os.path.join(ASSETS_DIR, "float_erosion.png"), dpi=140)
+    fig.savefig(os.path.join(ASSETS_DIR, "float_erosion.png"), dpi=140, facecolor=CHART_BG)
     plt.close(fig)
 
 
