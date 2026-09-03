@@ -182,11 +182,20 @@ def chart_float_erosion(comparison) -> None:
               for v in ranked["float_erosion"]]
     fig, ax = plt.subplots(figsize=(9, 6))
     ax.barh(ranked["activity_name"], ranked["float_erosion"], color=colors)
-    ax.axvline(metrics.EROSION_THRESHOLD_DAYS, color=BASELINE, linestyle="--", linewidth=1,
-               label=f"Erosion threshold ({metrics.EROSION_THRESHOLD_DAYS}d)")
+    threshold_line = ax.axvline(
+        metrics.EROSION_THRESHOLD_DAYS, color=BASELINE, linestyle="--", linewidth=1,
+        label=f"Erosion threshold ({metrics.EROSION_THRESHOLD_DAYS}d)",
+    )
     ax.set_xlabel("Float erosion (days lost vs baseline float)")
     ax.set_title("Float Erosion by Activity")
-    ax.legend(fontsize=8)
+    handles = [
+        plt.Rectangle((0, 0), 1, 1, color=STATUS_CRITICAL,
+                      label=f"At or over threshold (>= {metrics.EROSION_THRESHOLD_DAYS}d)"),
+        plt.Rectangle((0, 0), 1, 1, color=STATUS_GOOD,
+                      label=f"Under threshold (< {metrics.EROSION_THRESHOLD_DAYS}d)"),
+        threshold_line,
+    ]
+    ax.legend(handles=handles, loc="lower right", fontsize=8)
     ax.grid(color=GRID, linewidth=0.6, axis="x")
     _apply_chrome(fig, ax)
     fig.tight_layout()
