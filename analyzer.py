@@ -16,6 +16,7 @@ import os
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from src import metrics
 
@@ -52,10 +53,14 @@ def _apply_chrome(fig, axes) -> None:
 
 
 def status_tag(row) -> str:
-    if row["status"] == "Complete":
+    status = str(row["status"]).strip().lower()
+    if status == "complete":
         return "actual"
-    if row["status"] == "In Progress":
-        return f"in progress {int(row['percent_complete'])}%"
+    if status == "in progress":
+        pct = row["percent_complete"]
+        if pd.isna(pct):
+            return "in progress (% complete unknown)"
+        return f"in progress {int(pct)}%"
     return "forecast"
 
 
@@ -65,6 +70,16 @@ def criticality_tag(row) -> str:
     if row["is_near_critical"]:
         return "near-critical"
     return "ok"
+
+
+def critical_path_rows(comparison):
+    """Rows on the current critical path, in schedule order."""
+    return comparison[comparison["is_critical"]].sort_values("current_start")
+
+
+def top_erosion_rows(comparison, n: int = 6):
+    """Top-n activities by float erosion (baseline float lost), most eroded first."""
+    return comparison.sort_values("float_erosion", ascending=False).head(n)
 
 
 def print_report(comparison, score, baseline_finish, current_finish) -> None:
@@ -86,7 +101,7 @@ def print_report(comparison, score, baseline_finish, current_finish) -> None:
     print("-" * 64)
     print("CRITICAL PATH (current schedule)")
     print("-" * 64)
-    critical = comparison[comparison["is_critical"]].sort_values("current_start")
+    critical = critical_path_rows(comparison)
     for _, row in critical.iterrows():
         print(f"  {row['activity_id']:<5} {row['activity_name']:<42} "
               f"{row['current_start'].date()} -> {row['current_finish'].date()}  "
@@ -96,7 +111,7 @@ def print_report(comparison, score, baseline_finish, current_finish) -> None:
     print("-" * 64)
     print("TOP FLOAT EROSION (baseline float lost)")
     print("-" * 64)
-    top_erosion = comparison.sort_values("float_erosion", ascending=False).head(6)
+    top_erosion = top_erosion_rows(comparison)
     for _, row in top_erosion.iterrows():
         print(f"  {row['activity_id']:<5} {row['activity_name']:<42} "
               f"erosion={row['float_erosion']:+3d}d  "
@@ -126,7 +141,7 @@ def write_report_markdown(comparison, score, baseline_finish, current_finish) ->
         "| Activity | Start | Finish | Status |",
         "|---|---|---|---|",
     ]
-    critical = comparison[comparison["is_critical"]].sort_values("current_start")
+    critical = critical_path_rows(comparison)
     for _, row in critical.iterrows():
         lines.append(
             f"| {row['activity_name']} | {row['current_start'].date()} "
@@ -136,7 +151,7 @@ def write_report_markdown(comparison, score, baseline_finish, current_finish) ->
     lines += ["", "## Top Float Erosion (baseline float lost)", "",
               "| Activity | Erosion | Current Float | Status |",
               "|---|---|---|---|"]
-    top_erosion = comparison.sort_values("float_erosion", ascending=False).head(6)
+    top_erosion = top_erosion_rows(comparison)
     for _, row in top_erosion.iterrows():
         lines.append(
             f"| {row['activity_name']} | {row['float_erosion']:+d}d "
