@@ -36,6 +36,6 @@
 | Bulk Materials Procurement | +15d | +0d | CRITICAL |
 | Structural Erection | +15d | +0d | CRITICAL |
 | Cable and Conduit Installation | +11d | +9d | ok |
-| Process Design | +0d | +0d | CRITICAL |
-| Detailed Engineering | +0d | +0d | CRITICAL |
 | Long-Lead Equipment Procurement | +0d | +0d | CRITICAL |
+| Detailed Engineering | +0d | +0d | CRITICAL |
+| Process Design | +0d | +0d | CRITICAL |
