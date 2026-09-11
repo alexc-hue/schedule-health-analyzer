@@ -23,6 +23,9 @@ from src import chart_style, metrics
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
 
+# Edit this to match your own project -- see README ("point this at your
+# own data"). It isn't read from the CSV: PROJECT_START is this fictional
+# schedule's own starting assumption.
 PROJECT_START = "2026-01-05"
 
 

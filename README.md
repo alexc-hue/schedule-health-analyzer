@@ -133,4 +133,6 @@ python analyzer.py
 Swap in your own `data/activities.csv` (same columns: `activity_id`,
 `activity_name`, `phase`, `predecessors` as semicolon-separated ids,
 `baseline_duration_days`, `current_duration_days`, `status`,
-`percent_complete`) to point it at a real schedule.
+`percent_complete`) to point it at a real schedule. The `PROJECT_START`
+constant near the top of `analyzer.py` is this fictional schedule's own
+assumption too, not read from the CSV, so update it by hand as well.
