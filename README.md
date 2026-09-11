@@ -1,5 +1,7 @@
 # Schedule Health Analyzer
 
+![CI](https://github.com/alexc-hue/schedule-health-analyzer/actions/workflows/tests.yml/badge.svg)
+
 Operationalizes the Critical Path Method as a repeatable health check instead
 of a one-off Gantt review. Runs a project's activity network twice, once
 against baseline durations, once against current/re-estimated ones, and turns
