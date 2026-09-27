@@ -18,6 +18,7 @@ CHART_BG = "#fcfcfb"
 INK = "#10182b"
 GRID = "#e1e0d9"
 BASELINE = "#3a4d7a"
+SERIES_1 = "#2a78d6"  # shared core; unused by this repo's own charts
 STATUS_GOOD = "#0ca30c"
 STATUS_WARNING = "#fab219"
 STATUS_CRITICAL = "#d03b3b"
