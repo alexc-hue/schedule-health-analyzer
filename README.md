@@ -74,6 +74,8 @@ Activities with eroded float (>= 10d lost): 21.4%
 Activities critical or near-critical: 78.6%
 ```
 
+This block is checked in CI against what the script actually prints (see `tests/test_readme_result.py`), so it can't quietly fall out of date.
+
 Plus the current critical path activity by activity, and the activities that
 lost the most float, ranked, with the newly-critical ones flagged.
 
