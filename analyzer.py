@@ -16,6 +16,7 @@ import os
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from src import chart_style, metrics
@@ -140,24 +141,44 @@ def write_report_markdown(comparison, score, baseline_finish, current_finish) ->
         f.write("\n".join(lines))
 
 
+# Charts show at most this many activities. Past a few dozen bars the labels
+# are unreadable at a fixed figure size, and drawing thousands of labelled
+# bars is what made large schedules slow. The full list is always in the
+# console report and assets/report.md.
+CHART_TOP_N = 30
+
+
+def _gantt_rows(comparison):
+    """The activities the Gantt shows: all of them up to CHART_TOP_N, beyond
+    that the CHART_TOP_N with the least current float, kept in schedule order."""
+    if len(comparison) <= CHART_TOP_N:
+        return comparison
+    keep = comparison.sort_values(["current_float", "current_start"], kind="stable").index[:CHART_TOP_N]
+    return comparison.loc[comparison.index.isin(keep)]
+
+
 def chart_baseline_vs_current(comparison) -> None:
+    shown = _gantt_rows(comparison)
     fig, ax = plt.subplots(figsize=(10, 7))
     colors = {"CRITICAL": chart_style.STATUS_CRITICAL, "near-critical": chart_style.STATUS_WARNING,
               "ok": chart_style.STATUS_GOOD}
-    for i, row in enumerate(comparison.itertuples()):
-        b_start = mdates.date2num(row.baseline_start)
-        b_width = mdates.date2num(row.baseline_finish) - b_start
-        c_start = mdates.date2num(row.current_start)
-        c_width = mdates.date2num(row.current_finish) - c_start
-        ax.barh(i - 0.15, b_width, left=b_start, height=0.3, color=chart_style.BASELINE)
-        tag = criticality_tag(row._asdict())
-        ax.barh(i + 0.15, c_width, left=c_start, height=0.3, color=colors[tag])
+    positions = np.arange(len(shown))
+    b_start = mdates.date2num(shown["baseline_start"])
+    c_start = mdates.date2num(shown["current_start"])
+    ax.barh(positions - 0.15, mdates.date2num(shown["baseline_finish"]) - b_start, left=b_start,
+            height=0.3, color=chart_style.BASELINE)
+    tags = [criticality_tag(row) for row in shown[["is_critical", "is_near_critical"]].to_dict("records")]
+    ax.barh(positions + 0.15, mdates.date2num(shown["current_finish"]) - c_start, left=c_start,
+            height=0.3, color=[colors[t] for t in tags])
 
-    ax.set_yticks(range(len(comparison)))
-    ax.set_yticklabels(comparison["activity_name"], fontsize=8)
+    ax.set_yticks(range(len(shown)))
+    ax.set_yticklabels(shown["activity_name"], fontsize=8)
     ax.invert_yaxis()
     ax.xaxis_date()
-    ax.set_title("Baseline vs Current Schedule, by criticality")
+    title = "Baseline vs Current Schedule, by criticality"
+    if len(shown) < len(comparison):
+        title += f" ({len(shown)} least-float of {len(comparison)} activities)"
+    ax.set_title(title)
     handles = [plt.Rectangle((0, 0), 1, 1, color=chart_style.BASELINE, label="Baseline")]
     handles += [plt.Rectangle((0, 0), 1, 1, color=c, label=k) for k, c in colors.items()]
     ax.legend(handles=handles, loc="lower right", fontsize=8)
@@ -171,6 +192,8 @@ def chart_baseline_vs_current(comparison) -> None:
 
 def chart_float_erosion(comparison) -> None:
     ranked = comparison.sort_values("float_erosion", ascending=True)
+    if len(ranked) > CHART_TOP_N:
+        ranked = ranked.tail(CHART_TOP_N)
     colors = [chart_style.STATUS_CRITICAL if v >= metrics.EROSION_THRESHOLD_DAYS else chart_style.STATUS_GOOD
               for v in ranked["float_erosion"]]
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -180,7 +203,10 @@ def chart_float_erosion(comparison) -> None:
         label=f"Erosion threshold ({metrics.EROSION_THRESHOLD_DAYS}d)",
     )
     ax.set_xlabel("Float erosion (days lost vs baseline float)")
-    ax.set_title("Float Erosion by Activity")
+    title = "Float Erosion by Activity"
+    if len(ranked) < len(comparison):
+        title += f" (top {len(ranked)} of {len(comparison)})"
+    ax.set_title(title)
     handles = [
         plt.Rectangle((0, 0), 1, 1, color=chart_style.STATUS_CRITICAL,
                       label=f"At or over threshold (>= {metrics.EROSION_THRESHOLD_DAYS}d)"),
