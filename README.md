@@ -115,6 +115,13 @@ path, gained).
   not replacing it. The tool also doesn't decide what to do about a
   near-critical activity, flagging it and leaving the response to the
   planner or PM stays deliberate.
+- Size-tested with `benchmarks/size_test.py` on a 2018 laptop (Intel
+  i7-8750H, Python 3.14), single runs, so treat the numbers as a guide: a
+  generated schedule of 1,000 activities runs end to end in about 2 seconds,
+  10,000 in about 5 and 50,000 in about 11. The charts show at most 30
+  activities (the least float on the Gantt, the most float lost on the
+  erosion chart); the console report and report.md always list every
+  activity.
 
 ## What I learned
 
