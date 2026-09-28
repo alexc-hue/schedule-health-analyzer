@@ -140,3 +140,8 @@ Swap in your own `data/activities.csv` (same columns: `activity_id`,
 `percent_complete`) to point it at a real schedule. The `PROJECT_START`
 constant near the top of `analyzer.py` is this fictional schedule's own
 assumption too, not read from the CSV, so update it by hand as well.
+
+To see how it copes with bigger generated schedules, run `python
+benchmarks/size_test.py`. It prints run time and peak memory at each size.
+It's a hand-run check, not part of the test suite; measured numbers are
+under Limitations.
