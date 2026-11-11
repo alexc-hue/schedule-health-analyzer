@@ -8,12 +8,17 @@ against baseline durations, once against current/re-estimated ones, and turns
 the comparison into a schedule health report: forecast slip, float erosion by
 activity, critical-path concentration, and a composite 0-100 health score.
 
-Part of a small project-controls toolkit:
+The project-controls toolkit is six tools:
 [project-controls-dashboard](https://github.com/alexc-hue/project-controls-dashboard),
 **schedule-health-analyzer** (this repo),
 [change-control-register](https://github.com/alexc-hue/change-control-register),
 [risk-trend-tracker](https://github.com/alexc-hue/risk-trend-tracker),
-[project-controls-reporting-engine](https://github.com/alexc-hue/project-controls-reporting-engine).
+[project-controls-reporting-engine](https://github.com/alexc-hue/project-controls-reporting-engine),
+[recovery-scenario-planner](https://github.com/alexc-hue/recovery-scenario-planner).
+Two separate practice models apply the same methods to data center
+delivery, on synthetic data:
+[commissioning-readiness-gate](https://github.com/alexc-hue/commissioning-readiness-gate),
+[facility-status-digital-twin](https://github.com/alexc-hue/facility-status-digital-twin).
 
 ![Baseline vs current](assets/baseline_vs_current.png)
 
@@ -90,7 +95,7 @@ at baseline have converged onto the critical path in the current schedule.
 
 ![Baseline vs current](assets/baseline_vs_current.png)
 
-**Float erosion by activity** — how much baseline float each activity has
+**Float erosion by activity:** how much baseline float each activity has
 lost (or, for early activities finishing well ahead of the new critical
 path, gained).
 
