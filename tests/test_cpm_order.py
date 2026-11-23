@@ -61,10 +61,20 @@ def test_duplicate_ids_keep_the_last_row_like_the_reference():
     assert _topological_order(activities) == _reference_order(activities) == ["A", "B"]
 
 
-@pytest.mark.parametrize("preds", [[["B"], ["A"]], [["A"], []], [["X"], []]])
-def test_cycles_self_loops_and_unknown_ids_raise(preds):
+@pytest.mark.parametrize("preds", [[["B"], ["A"]], [["A"], []]])
+def test_cycles_and_self_loops_raise(preds):
     activities = pd.DataFrame({"activity_id": ["A", "B"], "predecessors": preds})
     with pytest.raises(ValueError, match="Cycle detected"):
+        _topological_order(activities)
+    with pytest.raises(ValueError, match="Cycle detected"):
+        _reference_order(activities)
+
+
+def test_unknown_ids_raise_their_own_error():
+    """Since 1.2.2 an unknown predecessor id gets its own message. The reference
+    implementation still reports it as a cycle, which is the old behaviour."""
+    activities = pd.DataFrame({"activity_id": ["A", "B"], "predecessors": [["X"], []]})
+    with pytest.raises(ValueError, match="Unknown predecessor id 'X' on activity 'A'"):
         _topological_order(activities)
     with pytest.raises(ValueError, match="Cycle detected"):
         _reference_order(activities)

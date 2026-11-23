@@ -4,6 +4,30 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and version numbers
 follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.2] - 2026-11-23
+
+Bug-fix release. Every number on the sample data is unchanged. The one visible difference: rows tied
+on float erosion now keep their CSV order, so the tied 0-day rows in the Top Float Erosion table
+(console and `assets/report.md`) and the bars in the float-erosion chart appear in a different order.
+
+### Fixed
+
+- `run_cpm` rejects a blank (NaN) or negative duration with an error that names the activity and
+  the column. Before, a blank crashed with "cannot convert float NaN to integer" and a negative
+  duration silently put the finish before the start.
+- A predecessor id that is not in the activity list raises "Unknown predecessor id 'X' on activity
+  'Y'" instead of "Cycle detected". The cycle error now lists the activities on or behind the cycle.
+- The float-erosion chart drew two activities with the same name as a single bar. Bars are now
+  placed by position and labelled by name.
+- The critical path and top float erosion lists, and the float-erosion chart, use a stable sort, so
+  tied rows come out in the same order on every run and pandas version.
+
+### Added
+
+- Tests for each fix above. `test_cycles_self_loops_and_unknown_ids_raise` in
+  `tests/test_cpm_order.py` is split in two: cycles and self-loops still expect "Cycle detected",
+  and unknown ids expect the new message.
+
 ## [1.2.1] - 2026-11-12
 
 Maintenance release. The tool's output is unchanged.
@@ -61,6 +85,7 @@ Checks and tests only. The tool's output is unchanged.
 
 First tagged release, marking the state of the repo before this changelog started. Baseline vs. current schedule through a CPM forward/backward pass, float erosion, and a three-part Schedule Health Score, with charts and a markdown report. Includes the fixes from code review, a pytest suite and CI.
 
+[1.2.2]: https://github.com/alexc-hue/schedule-health-analyzer/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/alexc-hue/schedule-health-analyzer/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/alexc-hue/schedule-health-analyzer/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/alexc-hue/schedule-health-analyzer/compare/v1.0.0...v1.1.0

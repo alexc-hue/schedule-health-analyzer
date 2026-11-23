@@ -51,13 +51,14 @@ def criticality_tag(row) -> str:
 
 
 def critical_path_rows(comparison):
-    """Rows on the current critical path, in schedule order."""
-    return comparison[comparison["is_critical"]].sort_values("current_start")
+    """Rows on the current critical path, in schedule order (ties keep input order)."""
+    return comparison[comparison["is_critical"]].sort_values("current_start", kind="stable")
 
 
 def top_erosion_rows(comparison, n: int = 6):
-    """Top-n activities by float erosion (baseline float lost), most eroded first."""
-    return comparison.sort_values("float_erosion", ascending=False).head(n)
+    """Top-n activities by float erosion (baseline float lost), most eroded first
+    (ties keep input order)."""
+    return comparison.sort_values("float_erosion", ascending=False, kind="stable").head(n)
 
 
 def print_report(comparison, score, baseline_finish, current_finish) -> None:
@@ -191,13 +192,18 @@ def chart_baseline_vs_current(comparison) -> None:
 
 
 def chart_float_erosion(comparison) -> None:
-    ranked = comparison.sort_values("float_erosion", ascending=True)
+    ranked = comparison.sort_values("float_erosion", ascending=True, kind="stable")
     if len(ranked) > CHART_TOP_N:
         ranked = ranked.tail(CHART_TOP_N)
     colors = [chart_style.STATUS_CRITICAL if v >= metrics.EROSION_THRESHOLD_DAYS else chart_style.STATUS_GOOD
               for v in ranked["float_erosion"]]
     fig, ax = plt.subplots(figsize=(9, 6))
-    ax.barh(ranked["activity_name"], ranked["float_erosion"], color=colors)
+    # Integer positions, not names: two activities with the same name would
+    # otherwise share one category and be drawn as a single bar.
+    positions = np.arange(len(ranked))
+    ax.barh(positions, ranked["float_erosion"], color=colors)
+    ax.set_yticks(positions)
+    ax.set_yticklabels(ranked["activity_name"])
     threshold_line = ax.axvline(
         metrics.EROSION_THRESHOLD_DAYS, color=chart_style.BASELINE, linestyle="--", linewidth=1,
         label=f"Erosion threshold ({metrics.EROSION_THRESHOLD_DAYS}d)",

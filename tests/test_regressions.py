@@ -5,13 +5,19 @@ That commit's message says each fix was checked with a throwaway script that
 was then discarded. These tests are that script, kept, so the same bugs
 can't come back unnoticed. Each one was confirmed to fail with its fix
 reverted before being committed.
+
+The section marked 1.2.2 at the end covers that release's fixes, each also
+written to fail before its fix went in.
 """
 
 from __future__ import annotations
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pytest
 
+import analyzer
 from analyzer import status_tag
 from src.cpm import run_cpm
 from src.metrics import compare_schedules, schedule_health_score
@@ -89,3 +95,53 @@ def test_status_matching_ignores_case_and_whitespace(status, expected):
 
 def test_in_progress_status_matching_ignores_case():
     assert status_tag({"status": " IN PROGRESS ", "percent_complete": 40}) == "in progress 40%"
+
+
+# --- 1.2.2 -------------------------------------------------------------------
+
+def _tied_comparison(n: int = 200) -> pd.DataFrame:
+    """Many rows sharing a handful of start dates and erosion values, in a known input order."""
+    rng = np.random.default_rng(0)
+    return pd.DataFrame({
+        "activity_id": [f"A{i:03d}" for i in range(n)],
+        "is_critical": True,
+        "current_start": pd.Timestamp("2026-01-01") + pd.to_timedelta(rng.integers(0, 3, n), unit="D"),
+        "float_erosion": rng.integers(0, 3, n),
+    })
+
+
+def _ties_keep_input_order(rows: pd.DataFrame, key: str) -> bool:
+    return all(list(group.index) == sorted(group.index) for _, group in rows.groupby(key))
+
+
+def test_critical_path_ties_keep_input_order():
+    """The default sort isn't stable, so tied start dates could swap order between runs."""
+    assert _ties_keep_input_order(analyzer.critical_path_rows(_tied_comparison()), "current_start")
+
+
+def test_top_erosion_ties_keep_input_order():
+    comparison = _tied_comparison()
+    assert _ties_keep_input_order(analyzer.top_erosion_rows(comparison, n=len(comparison)), "float_erosion")
+
+
+def test_float_erosion_chart_draws_one_bar_per_activity_with_duplicate_names(monkeypatch, tmp_path):
+    """Activity names used to be the bar positions, so two activities with the same
+    name were drawn as one bar."""
+    comparison = pd.DataFrame({
+        "activity_id": ["A", "B", "C"],
+        "activity_name": ["Cable pull", "Cable pull", "Terminations"],
+        "float_erosion": [3, 12, 5],
+    })
+    real_close = plt.close
+    figures = []
+    monkeypatch.setattr(analyzer, "ASSETS_DIR", str(tmp_path))
+    monkeypatch.setattr(plt, "close", figures.append)
+    analyzer.chart_float_erosion(comparison)
+    monkeypatch.undo()
+
+    ax = figures[0].axes[0]
+    bar_positions = {round(bar.get_y(), 6) for bar in ax.patches}
+    tick_labels = [label.get_text() for label in ax.get_yticklabels()]
+    real_close(figures[0])
+    assert len(bar_positions) == 3
+    assert tick_labels.count("Cable pull") == 2

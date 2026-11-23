@@ -54,3 +54,21 @@ def test_run_cpm_raises_on_cycle():
     })
     with pytest.raises(ValueError):
         run_cpm(cyclic, duration_col="duration_days", start_date=pd.Timestamp("2026-01-01"))
+
+
+@pytest.mark.parametrize("bad", [float("nan"), -3])
+def test_run_cpm_rejects_missing_or_negative_duration_naming_the_activity(bad):
+    """A blank duration used to crash with "cannot convert float NaN to integer",
+    and a negative one silently put the finish before the start."""
+    activities = _activities().astype({"duration_days": float})
+    activities.loc[1, "duration_days"] = bad
+    with pytest.raises(ValueError, match="'B'.*duration_days"):
+        run_cpm(activities, duration_col="duration_days", start_date=pd.Timestamp("2026-01-01"))
+
+
+def test_run_cpm_reports_an_unknown_predecessor_not_a_cycle():
+    """A typo in a predecessor list is not a cycle, and the error says which one it is."""
+    activities = _activities()
+    activities.at[2, "predecessors"] = ["A", "X9"]
+    with pytest.raises(ValueError, match="Unknown predecessor id 'X9' on activity 'C'"):
+        run_cpm(activities, duration_col="duration_days", start_date=pd.Timestamp("2026-01-01"))
